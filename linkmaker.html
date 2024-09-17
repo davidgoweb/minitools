@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Link List</title>
+
+  <style>
+    li {
+      margin-bottom: 10px;
+    }
+
+    button {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Link List</h1>
+
+<form id="linkForm">
+  <label for="linkInput">Add a Link:</label>
+  <input type="text" id="linkInput" required onkeydown="handleKeyPress(event)">
+  <button type="button" onclick="addLink()">Add</button>
+  <button type="button" onclick="clearAll()">Clear All</button>
+</form>
+
+<ul id="linkList"></ul>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+  // Load links from local storage on page load
+  loadLinks();
+});
+
+function addLink() {
+  // Get the input value
+  const linkInput = document.getElementById('linkInput');
+  const linkUrl = linkInput.value.trim();
+
+  if (linkUrl) {
+    // Append the new link as a list item using innerHTML
+    const linkList = document.getElementById('linkList');
+    linkList.innerHTML += `
+      <li>
+        <button onclick="this.parentElement.remove(); saveLinks()">Remove</button>
+        <a href="${linkUrl}" target="_blank">${linkUrl}</a>
+      </li>
+    `;
+
+    // Save the updated list to local storage
+    saveLinks();
+
+    // Clear the input field
+    linkInput.value = "";
+  }
+}
+
+function removeLink(item) {
+  // Remove the item from the list
+  const linkList = document.getElementById('linkList');
+  linkList.removeChild(item);
+
+  // Save the updated list to local storage
+  saveLinks();
+}
+
+function clearAll() {
+  // Clear all links using innerHTML
+  const linkList = document.getElementById('linkList');
+  linkList.innerHTML = '<li>No links available</li>';
+
+  // Save the updated list to local storage
+  saveLinks();
+}
+
+function saveLinks() {
+  // Save the list's innerHTML to local storage
+  const linkList = document.getElementById('linkList');
+  const links = linkList.innerHTML;
+
+  localStorage.setItem('links', links);
+}
+
+function loadLinks() {
+  // Load saved links from local storage
+  const savedLinks = localStorage.getItem('links');
+  
+  const linkList = document.getElementById('linkList');
+  linkList.innerHTML = savedLinks || '<li>No links available</li>';
+}
+
+function handleKeyPress(event) {
+  // If the Enter key is pressed, add the link
+  if (event.key === 'Enter') {
+    addLink();
+  }
+}
+</script>
+
+</body>
+</html>

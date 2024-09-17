@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynamic Link List with Custom Fields</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    button {
+      cursor: pointer;
+    }
+    .field-container {
+      margin-bottom: 10px;
+    }
+    .controls {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Customizable Link List</h1>
+
+<!-- Form to add fields dynamically -->
+<form id="linkForm">
+  <div id="inputFields">
+    <!-- No default fields here -->
+  </div>
+
+  <button type="button" onclick="addField()">Add New Custom Field</button>
+  <button type="button" onclick="removeField()">Remove Last Field</button>
+  <br><br>
+  <button type="button" onclick="addLink()">Add Row</button>
+  <button type="button" onclick="clearAll()">Clear All Links</button>
+  <button type="button" onclick="clearLocalStorage()">Clear All Data</button>
+  <button type="button" onclick="copyTableHTML()">Copy Table HTML</button>
+</form>
+
+<!-- Table to display the link list -->
+<table id="linkTable">
+  <thead id="tableHead">
+    <tr>
+      <!-- Columns will be dynamically added -->
+    </tr>
+  </thead>
+  <tbody id="tableBody">
+    <tr><td colspan="1">No links available</td></tr>
+  </tbody>
+</table>
+
+<!-- Control section with Remove button outside the table -->
+<div class="controls">
+  <button type="button" onclick="removeLastRow()">Remove Last Row</button>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  loadFields();
+  loadLinks();
+});
+
+let fieldCount = 0; // Starts with no fields
+
+function addField(fieldLabel = null) {
+  fieldCount++;
+  
+  // Prompt for the new field's column name if not provided
+  fieldLabel = fieldLabel || prompt('Enter the label for the new field:', `Field ${fieldCount}`);
+  if (!fieldLabel) {
+    fieldCount--;
+    return;
+  }
+
+  const inputFieldsDiv = document.getElementById('inputFields');
+
+  // Add new input field with a custom label
+  const newField = document.createElement('div');
+  newField.className = 'field-container';
+  newField.innerHTML = `
+    <label for="customField${fieldCount}">${fieldLabel}:</label>
+    <input type="text" id="customField${fieldCount}" data-label="${fieldLabel}" required>
+  `;
+  inputFieldsDiv.appendChild(newField);
+
+  // Add new column to the table with the custom label
+  const tableHeadRow = document.getElementById('tableHead').rows[0];
+  const newHeader = document.createElement('th');
+  newHeader.textContent = fieldLabel;
+  tableHeadRow.appendChild(newHeader);
+
+  // Save the updated fields to local storage
+  saveFields();
+}
+
+function removeField() {
+  if (fieldCount > 0) {
+    fieldCount--;
+
+    // Remove the last input field
+    const inputFieldsDiv = document.getElementById('inputFields');
+    inputFieldsDiv.removeChild(inputFieldsDiv.lastElementChild);
+
+    // Remove the last column from the table
+    const tableHeadRow = document.getElementById('tableHead').rows[0];
+    tableHeadRow.deleteCell(-1);
+
+    // Save the updated fields to local storage
+    saveFields();
+  }
+}
+
+function addLink() {
+  if (fieldCount > 0) {
+    const tableBody = document.getElementById('tableBody');
+
+    // Clear "No links available" row if it exists
+    if (tableBody.children.length === 1 && tableBody.children[0].cells.length === 1) {
+      tableBody.innerHTML = "";
+    }
+
+    // Build the table row HTML
+    let rowHTML = `<tr>`;
+
+    // Add values from all custom fields
+    for (let i = 1; i <= fieldCount; i++) {
+      const customFieldValue = document.getElementById(`customField${i}`).value.trim();
+      rowHTML += `<td>${customFieldValue}</td>`;
+    }
+
+    rowHTML += `</tr>`;
+
+    // Append the row to the table
+    tableBody.innerHTML += rowHTML;
+
+    // Save the updated table to local storage
+    saveLinks();
+
+    // Clear input fields
+    for (let i = 1; i <= fieldCount; i++) {
+      document.getElementById(`customField${i}`).value = "";
+    }
+  } else {
+    alert("Please add at least one field before adding a row.");
+  }
+}
+
+function removeLastRow() {
+  const tableBody = document.getElementById('tableBody');
+  if (tableBody.children.length > 0) {
+    tableBody.removeChild(tableBody.lastElementChild);
+
+    // Save the updated table to local storage
+    saveLinks();
+
+    // If the table is empty, display the "No links available" message
+    if (tableBody.children.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="1">No links available</td></tr>';
+    }
+  } else {
+    alert('No rows to remove.');
+  }
+}
+
+function clearAll() {
+  const tableBody = document.getElementById('tableBody');
+  tableBody.innerHTML = '<tr><td colspan="1">No links available</td></tr>';
+  
+  saveLinks();
+}
+
+function clearLocalStorage() {
+  // Clear all local storage, including fields and links
+  localStorage.clear();
+  
+  // Reset table and input fields
+  document.getElementById('tableHead').innerHTML = '<tr></tr>';
+  document.getElementById('tableBody').innerHTML = '<tr><td colspan="1">No links available</td></tr>';
+  document.getElementById('inputFields').innerHTML = '';
+  fieldCount = 0;
+  
+  alert('All data cleared from local storage.');
+}
+
+function copyTableHTML() {
+  const table = document.getElementById('linkTable');
+  const tableHTML = table.outerHTML;
+
+  // Check if the clipboard API is supported
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(tableHTML)
+      .then(() => {
+        alert('Table HTML copied to clipboard!');
+      })
+      .catch(err => {
+        console.error('Failed to copy table HTML: ', err);
+      });
+  } else {
+    // Fallback for browsers that do not support the clipboard API
+    fallbackCopyTextToClipboard(tableHTML);
+  }
+}
+
+function fallbackCopyTextToClipboard(text) {
+  // Create a temporary textarea element to hold the text
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  
+  // Hide the textarea element
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-9999px';
+  
+  document.body.appendChild(textArea);
+  
+  // Select the text inside the textarea
+  textArea.select();
+  textArea.setSelectionRange(0, 99999); // For mobile devices
+
+  try {
+    // Execute the copy command
+    document.execCommand('copy');
+    alert('Table HTML copied to clipboard!');
+  } catch (err) {
+    console.error('Fallback: Oops, unable to copy', err);
+  }
+  
+  // Remove the temporary textarea element
+  document.body.removeChild(textArea);
+}
+
+function saveLinks() {
+  const tableBody = document.getElementById('tableBody');
+  const tableData = tableBody.innerHTML;
+  localStorage.setItem('links', tableData);
+}
+
+function loadLinks() {
+  const savedLinks = localStorage.getItem('links');
+  const tableBody = document.getElementById('tableBody');
+  tableBody.innerHTML = savedLinks || '<tr><td colspan="1">No links available</td>';
+}
+
+function saveFields() {
+  const fields = [];
+
+  // Loop through each field and store its label
+  for (let i = 1; i <= fieldCount; i++) {
+    const fieldLabel = document.querySelector(`#customField${i}`).dataset.label;
+    fields.push(fieldLabel);
+  }
+
+  // Save the fields in local storage
+  localStorage.setItem('fields', JSON.stringify(fields));
+}
+
+function loadFields() {
+  const savedFields = JSON.parse(localStorage.getItem('fields'));
+
+  if (savedFields) {
+    savedFields.forEach(fieldLabel => {
+      addField(fieldLabel); // Add each saved field
+    });
+  }
+}
+</script>
+
+</body>
+</html>
