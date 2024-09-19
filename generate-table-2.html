@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Generator - madebyKey</title>
+</head>
+
+<style>
+    /* table style */
+    table.prodTable {
+        width: 100%;
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .prodTable th, .prodTable td {
+        border: 1px solid black;
+        padding: 10px;
+        margin: auto;
+    }
+
+    .prodTable th {
+        background-color: #323232;
+        color: #FFF;
+    }
+
+    .buttonProd, .addBtn {
+        background-color: #2962ff;
+        border-radius: 5px;
+        padding: 7px 18px;
+        color: #FFF;
+        text-decoration: none;
+        cursor: pointer;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+    }
+
+    .check {
+        display: inline-block;
+        transform: rotate(45deg);
+        height: 20px;
+        width: 10px;
+        border-bottom: 7px solid #78b13f;
+        border-right: 7px solid #78b13f;
+    }
+
+    .close {
+        display: inline-block;
+        transform: rotate(90deg);
+        height: 25px;
+        width: 7px;
+        background: #ff0000;
+    }
+
+    /* fillable style */
+    .inputs {
+        width: 70%;
+        margin: auto;
+    }
+
+    .input {
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+    }
+
+    input {
+        padding: 5px;
+        width: 90%;
+        margin-left: 2rem;
+    }
+</style>
+
+<body>
+    <div style="text-align: center; margin-bottom: 4rem;">
+        <div class="inputs">
+            <p><strong>//untuk dapet checkmark atau close/cross, add new field trus nanti value [y] atau [n]</strong></p>
+            <div class="input">
+                <label for="name">Name:</label>
+                <input type="text" placeholder="Produk Name" id="name">
+            </div>
+            <div class="input">
+                <label for="link">Link:</label>
+                <input type="text" placeholder="Produk Link" id="link">
+            </div>
+            <div class="input">
+                <label for="price">Price:</label>
+                <input type="text" placeholder="Price" id="price">
+            </div>
+            <div class="input">
+                <label for="benefit">Benefit:</label>
+                <input type="text" placeholder="Benefit" id="benefit">
+            </div>
+        </div>
+        <span onclick="newInput()" class="addBtn" style="background-color: #323232;">Add New Field</span>
+        <span onclick="newElement()" class="addBtn">Add</span>
+    </div>
+
+    <table class="prodTable">
+        <tr>
+            <th>Produk Name</th>
+            <th>Link</th>
+            <th>Price</th>
+            <th>Benefit</th>
+        </tr>
+    </table>
+
+    <div style="text-align: center;">
+        <span onclick="deleteRow()" class="addBtn" style="background-color: red;">Delete Row</span>
+        <button onclick="generateCode()" class="addBtn" style="margin-top: 2rem; padding: 10px; border: none;">Generate Code</button>
+    </div>
+
+    <script>
+      let flag = 0;
+
+      function newInput() {
+        const inputs = document.querySelector('.inputs');
+        const intClass = document.createElement('div');
+        intClass.classList.add("input");
+
+        // Prompt user for label
+        const labelText = prompt("Enter the label for the new input:");
+        // const inputType = prompt("Choose input type (text or radio):");
+
+        // Create label and input elements
+        const label = document.createElement('label');
+        label.textContent = labelText;
+        intClass.appendChild(label);
+
+        const input = document.createElement('input');
+        input.type = "text";
+        input.id = labelText;
+        input.placeholder = "Enter value";
+        intClass.appendChild(input);
+
+        // Append label and input to intClass
+        inputs.appendChild(intClass);
+
+        // Add the new input to the table
+        const prodTable = document.querySelector('.prodTable');
+        const existingRow = prodTable.querySelector('tr'); // Add th to the existing tr
+        const newCell = document.createElement('th');
+        newCell.textContent = label.textContent;
+        existingRow.appendChild(newCell);
+
+        flag++;
+      }
+
+    function newElement() {
+        // Get references to the table and input fields
+        const table = document.querySelector('table');
+        const nameInput = document.getElementById('name');
+        const linkInput = document.getElementById('link');
+        const priceInput = document.getElementById('price');
+        const benefitInput = document.getElementById('benefit');
+
+        // Validate inputs (optional but recommended)
+        if (!nameInput.value || !linkInput.value || !priceInput.value || !benefitInput.value) {
+            alert('Please fill in all fields!');
+            return; // Exit function if any input is empty
+        }
+
+        // Create a new table row
+        const newRow = document.createElement('tr');
+
+        // Handle dynamically added input fields
+        const newInputValues = getNewInputValues();
+        for (const label in newInputValues) {
+            const value = newInputValues[label];
+            const newTd = document.createElement('td');
+
+            // Check for [y] or [n]
+            const isCheck = value.includes('[y]');
+            const isClose = value.includes('[n]');
+
+            if (isCheck) {
+            newTd.innerHTML = `<div class="check"></div>`;
+            } else if (isClose) {
+            newTd.innerHTML = `<div class="close"></div>`;
+            } else if(newRow.childElementCount === 1) {
+                newTd.innerHTML = `<a class="buttonProd" target="_blank" href="${value}">BUY NOW</a>`;
+            } else if(newRow.childElementCount === 2) {
+                newTd.innerHTML = `Rp.${value}`;
+            }
+            else {
+            newTd.textContent = value;
+            }
+
+            newRow.appendChild(newTd);
+        }
+
+        // Append the new row to the table (ideally to the table body)
+        const tableBody = table.querySelector('tbody');
+        if (tableBody) {
+            tableBody.appendChild(newRow);
+        } else {
+            table.appendChild(newRow);
+        }
+
+        // Clear input fields for next entry
+        document.querySelectorAll('.inputs input').forEach(input => input.value = '');
+    }
+
+      function findThByText(table, text) {
+        const thElements = table.querySelectorAll('th');
+        for (const th of thElements) {
+          if (th.textContent.trim() === text.trim()) {
+            return th;
+          }
+        }
+        return null; // Element not found
+      }
+
+        function getNewInputValues() {
+            const inputs = document.querySelectorAll('.inputs .input');
+            const values = {};
+            inputs.forEach(input => {
+                const label = input.querySelector('label').textContent;
+                const value = input.querySelector('input').value;
+                values[label] = value;
+            });
+            return values;
+        }
+
+        function generateCode() {
+            // Get the table element
+            const table = document.querySelector('table');
+
+            // Convert the table to HTML string
+            const tableHTML = table.outerHTML;
+
+            // Create a modal or popup window
+            const modal = document.createElement('div');
+            modal.classList.add('code-modal');
+            modal.innerHTML = `
+                <h2>Table Code</h2>
+                <pre>${tableHTML}</pre>
+                <button class="copy-btn">Copy</button>
+                <button class="download-btn">Download</button>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Add event listeners for buttons
+            const copyBtn = modal.querySelector('.copy-btn');
+            const downloadBtn = modal.querySelector('.download-btn');
+
+            copyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(tableHTML);
+                alert('Code copied to clipboard!');
+            });
+
+            downloadBtn.addEventListener('click', () => {
+                const blob = new Blob([tableHTML], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'table_code.html';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+
+        function deleteRow() {
+            const table = document.querySelector('table');
+            const rowCount = table.querySelectorAll('tr').length; // Count only `<tr>` elements
+                console.log("row count: ", rowCount)
+            if (rowCount <= 1) {
+                alert('There is only one row in the table. Cannot delete!');
+                return;
+            }
+
+            const rowToDelete = parseInt(prompt('Enter the index of the row to delete (starting from 1):')); // Adjust for 0-based index
+            console.log("row to del: ", rowToDelete);
+
+            if (isNaN(rowToDelete) || rowToDelete < 0 || rowToDelete >= rowCount) {
+                alert('Invalid row index. Please enter a valid number between 1 and ' + (rowCount - 1));
+                return;
+            }
+
+            // Remove the row from the table
+            table.deleteRow(rowToDelete);
+        }
+    </script>
+</body>
+</html>
