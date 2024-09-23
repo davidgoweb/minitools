@@ -25,11 +25,14 @@
         color: #FFF;
     }
 
-    .buttonProd, .addBtn {
-        background-color: #2962ff;
-        border-radius: 5px;
-        padding: 7px 18px;
-        color: #FFF;
+    /* rtrs nanti hapus, ngikut dari wp */
+    .addBtn {
+        border: none;
+        border-radius: 4px;
+        background: #2962ff;
+        color: #ffffff !important;
+        font-size: 16px;
+        padding: 16px 36px;
         text-decoration: none;
         cursor: pointer;
         letter-spacing: 0.8px;
@@ -57,6 +60,7 @@
     .inputs {
         width: 70%;
         margin: auto;
+        margin-bottom: 3rem;
     }
 
     .input {
@@ -78,11 +82,11 @@
             <p><strong>//untuk dapet checkmark atau close/cross, add new field trus nanti value [y] atau [n]</strong></p>
             <div class="input">
                 <label for="name">Name:</label>
-                <input type="text" placeholder="Produk Name" id="name">
+                <input type="text" placeholder="Product Name" id="name">
             </div>
             <div class="input">
                 <label for="link">Link:</label>
-                <input type="text" placeholder="Produk Link" id="link">
+                <input type="text" placeholder="Product Link" id="link">
             </div>
             <div class="input">
                 <label for="price">Price:</label>
@@ -99,10 +103,10 @@
 
     <table class="prodTable">
         <tr>
-            <th>Produk Name</th>
-            <th>Link</th>
-            <th>Price</th>
-            <th>Benefit</th>
+            <th class="rtrs-title">Product Name</th>
+            <th class="rtrs-title">Link</th>
+            <th class="rtrs-title">Price</th>
+            <th class="rtrs-title">Benefit</th>
         </tr>
     </table>
 
@@ -141,6 +145,7 @@
         const prodTable = document.querySelector('.prodTable');
         const existingRow = prodTable.querySelector('tr'); // Add th to the existing tr
         const newCell = document.createElement('th');
+        newCell.classList.add('rtrs-title');
         newCell.textContent = label.textContent;
         existingRow.appendChild(newCell);
 
@@ -172,16 +177,19 @@
 
             // Check for [y] or [n]
             const isCheck = value.includes('[y]');
-            const isClose = value.includes('[n]');
+            const isCross = value.includes('[n]');
 
             if (isCheck) {
             newTd.innerHTML = `<div class="check"></div>`;
-            } else if (isClose) {
+            } else if (isCross) {
             newTd.innerHTML = `<div class="close"></div>`;
             } else if(newRow.childElementCount === 1) {
-                newTd.innerHTML = `<a class="buttonProd" target="_blank" href="${value}">BUY NOW</a>`;
+                newTd.innerHTML = `<a class="addBtn" target="_blank" href="${value}">BUY NOW</a>`;
             } else if(newRow.childElementCount === 2) {
                 newTd.innerHTML = `Rp.${value}`;
+            }else if(newRow.childElementCount === 0){
+                newTd.classList.add('rtrs-title');
+                newTd.innerHTML = `${value}`;
             }
             else {
             newTd.textContent = value;
